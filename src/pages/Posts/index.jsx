@@ -1,42 +1,40 @@
 import React from "react";
 import { Pagination } from "antd";
 
-import { useFetching } from "../../hooks/useFetch";
-import { ROUTES, URL } from "../../consts/consts";
+import {
+	fetchPosts,
+	getAllPost,
+	getPostStatus,
+	getPostErorr,
+	getCountOfPosts,
+} from "../../redux/slices/postSlice";
+
+import { fetchUsers, getUsers } from "../../redux/slices/userSlice";
 
 import PostList from "../../components/PostList";
-import { getPageCount } from "../../utils/countPages";
-import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
 
 function Posts() {
+	const dispatch = useDispatch();
+
+	const posts = useSelector(getAllPost);
+	const postStatus = useSelector(getPostStatus);
+	const postErorr = useSelector(getPostErorr);
+	const countOfPosts = useSelector(getCountOfPosts);
+	const users = useSelector(getUsers);
+
 	const [limit, setLimit] = React.useState(10);
 	const [page, setPage] = React.useState(1);
 	const [pageSize, setPageSize] = React.useState(10);
-	const [posts, setPosts] = React.useState([]);
-	// const [totalPage, setTotalPage] = React.useState(0);
-	const [countOfPosts, setCountofPosts] = React.useState(0);
-
-	const [fetching, isLoading, error] = useFetching(async () => {
-		const response = await axios.get(URL + ROUTES.POSTS, {
-			params: { _limit: limit, _page: page },
-		});
-		const total = response.headers["x-total-count"];
-		setCountofPosts(total);
-		setPosts(response.data);
-		// setTotalPage(getPageCount(total, limit));
-	});
 
 	React.useEffect(() => {
-		fetching();
-	}, [limit, page]);
-
-	console.log("Posts rerender");
+		dispatch(fetchPosts({ page, limit }));
+		dispatch(fetchUsers());
+	}, [page, limit]);
 
 	const handlePageSizeChange = (current, pageSize) => {
 		setPageSize(pageSize);
 		setLimit(pageSize);
-
-		console.log(current, pageSize);
 	};
 
 	const changePage = (pageNumber) => {
@@ -44,30 +42,25 @@ function Posts() {
 
 		window.scrollTo(0, 0);
 	};
-
-	if (error) return <p>There is an error.</p>;
-
-	return (
-		<>
-			{isLoading ? (
-				"...Loading"
-			) : (
-				<>
-					<PostList posts={posts} />
-					<Pagination
-						current={page}
-						onChange={changePage}
-						showSizeChanger
-						pageSize={pageSize}
-						onShowSizeChange={handlePageSizeChange}
-						defaultCurrent={1}
-						total={countOfPosts}
-						responsive={true}
-					/>
-				</>
-			)}
-		</>
-	);
+	if (postStatus === "loading") return "...Loading";
+	if (postStatus === "success") {
+		return (
+			<>
+				<PostList posts={posts} users={users} />
+				<Pagination
+					current={page}
+					onChange={changePage}
+					showSizeChanger
+					pageSize={pageSize}
+					onShowSizeChange={handlePageSizeChange}
+					defaultCurrent={1}
+					total={countOfPosts}
+					responsive={true}
+				/>
+			</>
+		);
+	}
+	if (postStatus === "Erorr") return <p>{postErorr}</p>;
 }
 
 export default Posts;

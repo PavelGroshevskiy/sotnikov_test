@@ -1,7 +1,8 @@
+import PostAuthor from "./PostAuthor";
 import PostItem from "./PostItem";
 import styles from "./index.module.scss";
 
-function PostList({ posts }) {
+function PostList({ posts, users }) {
 	return (
 		<div>
 			{posts.map((post, id) => {
