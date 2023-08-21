@@ -1,4 +1,5 @@
-import PostAuthor from "./PostAuthor";
+import React from "react";
+
 import PostItem from "./PostItem";
 import styles from "./index.module.scss";
 
